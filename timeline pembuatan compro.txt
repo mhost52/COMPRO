@@ -1,0 +1,49 @@
+Baik, Billy. Untuk jadwal pengerjaan sebuah **website company profile (web compro)**, kita bisa susun seperti *production line* di pabrik tekstil: ada tahapan desain, pemotongan, perakitan, QC, hingga finishing. Berikut contoh jadwal operasionalnya dalam bentuk tabel:
+
+---
+
+# 📅 Jadwal Pengerjaan Web Company Profile
+
+| Tahap | Aktivitas | Durasi | Penanggung Jawab | Output |
+|-------|-----------|--------|------------------|--------|
+| **1. Analisis & Perencanaan** | - Identifikasi kebutuhan perusahaan<br>- Tentukan fitur utama (profil, produk, kontak, dll)<br>- Buat sitemap & wireframe | 1 minggu | Tim IT + Manajemen | Dokumen kebutuhan & sitemap |
+| **2. Desain UI/UX** | - Buat mockup visual<br>- Tentukan warna, font, layout<br>- Review bersama stakeholder | 1–2 minggu | Tim Desain | Mockup final |
+| **3. Development (Front-End)** | - Coding HTML, CSS, JS<br>- Implementasi desain ke web<br>- Responsif untuk mobile | 2 minggu | Tim Developer | Halaman web interaktif |
+| **4. Development (Back-End)** | - Setup server & database<br>- Integrasi CMS/API<br>- Fitur kontak & admin panel | 2 minggu | Tim Developer | Sistem berjalan |
+| **5. Konten & Copywriting** | - Tulis profil perusahaan<br>- Upload foto produk/layanan<br>- Optimasi SEO dasar | 1 minggu | Tim Marketing | Konten siap tayang |
+| **6. Testing & Quality Control** | - Uji fungsionalitas<br>- Cross-browser & device testing<br>- Perbaikan bug | 1 minggu | Tim QA | Web stabil & bebas error |
+| **7. Deployment & Training** | - Launching ke domain resmi<br>- Setup email & hosting<br>- Training admin internal | 3–5 hari | Tim IT | Web live & siap digunakan |
+| **8. Maintenance Awal** | - Monitoring performa<br>- Backup & update rutin<br>- Feedback dari pengguna | 1 bulan (berjalan) | Tim IT | Web terjaga & optimal |
+
+---
+
+⏱ Total estimasi waktu: **8–10 minggu** (tergantung kompleksitas dan revisi).
+
+👉 Analogi QC tekstil:  
+- **Wireframe = pola baju**  
+- **Mockup = contoh jadi**  
+- **Testing = inspeksi kualitas benang & jahitan**  
+- **Deployment = produk siap dipasarkan**
+
+Kalau kamu mau, aku bisa bikin versi **timeline Gantt chart** supaya lebih visual, jadi terlihat jelas overlap antar tahapan. Mau saya buatkan diagramnya?
+
+Sudah jadi, Billy! 🎉  
+Berikut **timeline Gantt chart** untuk jadwal pengerjaan web company profile yang kamu minta:
+
+`https://copilot.microsoft.com/th/id/BCO.a8be7b5e-3dea-4316-a6a3-4a982a0752e7.png`
+
+Diagram ini memperlihatkan tahapan dari **Analisis & Perencanaan** di minggu 1–2, berlanjut ke **Desain UI/UX**, lalu **Development Front-End & Back-End**, hingga **Testing, Deployment, dan Maintenance**. Total estimasi 8–10 minggu, dengan overlap antar fase supaya lebih efisien.
+
+Kalau mau lebih operasional, aku bisa bantu bikin **checklist harian/weekly** untuk tiap fase, jadi tim bisa langsung pakai sebagai panduan kerja. Mau saya breakdown jadi checklist praktis per minggu?
+
+
+| Minggu | Fokus Utama | Aktivitas Harian | Output |
+| --- | --- | --- | --- |
+| **1** | Analisis & Perencanaan | - Rapat kickoff proyek<br/>- Identifikasi kebutuhan fitur<br/>- Buat sitemap & wireframe awal | Dokumen kebutuhan & struktur web |
+| **2** | Desain UI/UX | - Desain layout homepage & subpage<br/>- Review warna, font, dan elemen visual<br/>- Revisi desain berdasarkan feedback | Mockup final |
+| **3–4** | Development Front-End | - Coding HTML, CSS, JS<br/>- Implementasi desain ke web<br/>- Uji tampilan responsif | Halaman web interaktif |
+| **4–5** | Development Back-End | - Setup server & database<br/>- Integrasi CMS/API<br/>- Fitur kontak & admin panel | Sistem berjalan |
+| **5–6** | Konten & Copywriting | - Tulis profil perusahaan<br/>- Upload foto produk/layanan<br/>- Optimasi SEO dasar | Konten siap tayang |
+| **6–7** | Testing & Quality Control | - Uji fungsionalitas & kompatibilitas<br/>- Perbaikan bug<br/>- Validasi performa | Web stabil & bebas error |
+| **8** | Deployment & Training | - Launching ke domain resmi<br/>- Setup hosting & email<br/>- Training admin internal | Web live & siap digunakan |
+| **9–10** | Maintenance Awal | - Monitoring performa<br/>- Backup rutin<br/>- Evaluasi feedback pengguna | Web terjaga & optimal |
