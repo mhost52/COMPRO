@@ -1,0 +1,296 @@
+Oke Billy, biar bagian **Career** itu tidak hardcode lagi, kita bikin tabel di MySQL lalu hubungkan dengan **MVC CodeIgniter 3**. Berikut alurnya:
+
+---
+
+## 🗄️ Struktur Tabel MySQL
+```sql
+CREATE TABLE careers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150),
+  description TEXT,
+  requirements TEXT,
+  email VARCHAR(150)
+);
+```
+
+- `title` → Nama posisi (misalnya "Textile Production Operator").
+- `description` → Job description (pakai format teks panjang).
+- `requirements` → Requirements & Qualifications.
+- `email` → Alamat email HR untuk apply.
+
+---
+
+## 📌 Model (`Career_model.php`)
+```php
+<?php
+class Career_model extends CI_Model {
+
+    public function get_all() {
+        return $this->db->get('careers')->result();
+    }
+
+    public function insert($data) {
+        return $this->db->insert('careers', $data);
+    }
+
+    public function get_by_id($id) {
+        return $this->db->get_where('careers', ['id' => $id])->row();
+    }
+
+    public function update($id, $data) {
+        $this->db->where('id', $id);
+        return $this->db->update('careers', $data);
+    }
+
+    public function delete($id) {
+        return $this->db->delete('careers', ['id' => $id]);
+    }
+}
+```
+
+---
+
+## 📌 Controller (`Career.php`)
+```php
+<?php
+class Career extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Career_model');
+    }
+
+    public function index() {
+        $data['careers'] = $this->Career_model->get_all();
+        $this->load->view('career_list', $data);
+    }
+}
+```
+
+---
+
+## 📌 View (`career_list.php`)
+```php
+<section id="career" class="container py-5 animate-on-scroll">
+    <h2 class="section-title text-center mb-5">Career</h2>
+    <div class="row">
+        <?php foreach($careers as $c): ?>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h4 class="font-weight-bold text-primary mb-3"><?= $c->title ?></h4>
+                    <h6 class="font-weight-bold">Job Description:</h6>
+                    <p class="text-muted"><?= nl2br($c->description) ?></p>
+                    <h6 class="font-weight-bold">Requirements & Qualifications:</h6>
+                    <p class="text-muted"><?= nl2br($c->requirements) ?></p>
+                    <a href="mailto:<?= $c->email ?>?subject=Application - <?= $c->title ?>" 
+                       class="btn btn-primary mt-3">Apply Now</a>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</section>
+```
+
+---
+
+### ⚡ Alur Operasional
+1. **Admin/HR** isi data ke tabel `careers` (via phpMyAdmin atau bikin CRUD admin).
+2. **Controller Career** ambil data dari `Career_model`.
+3. **View career_list** looping data → tampilkan card otomatis.
+4. Tidak perlu hardcode lagi, tinggal tambah data di DB.
+
+---
+
+👉 Mau saya bikinkan juga **versi CRUD admin** (form tambah/edit career) biar HR bisa input langsung tanpa phpMyAdmin?
+
+
+Sip Billy 👍, kita lanjut bikin **CRUD Admin Career** di CodeIgniter 3 biar HR bisa input/edit data langsung tanpa harus buka phpMyAdmin.  
+
+---
+
+## 🗄️ Struktur Tabel (sudah ada)
+```sql
+CREATE TABLE careers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150),
+  description TEXT,
+  requirements TEXT,
+  email VARCHAR(150)
+);
+```
+
+---
+
+## 📌 Model (`Career_model.php`)
+```php
+<?php
+class Career_model extends CI_Model {
+
+    public function get_all() {
+        return $this->db->get('careers')->result();
+    }
+
+    public function insert($data) {
+        return $this->db->insert('careers', $data);
+    }
+
+    public function get_by_id($id) {
+        return $this->db->get_where('careers', ['id' => $id])->row();
+    }
+
+    public function update($id, $data) {
+        $this->db->where('id', $id);
+        return $this->db->update('careers', $data);
+    }
+
+    public function delete($id) {
+        return $this->db->delete('careers', ['id' => $id]);
+    }
+}
+```
+
+---
+
+## 📌 Controller (`Career_admin.php`)
+```php
+<?php
+class Career_admin extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Career_model');
+    }
+
+    public function index() {
+        $data['careers'] = $this->Career_model->get_all();
+        $this->load->view('career_admin/list', $data);
+    }
+
+    public function create() {
+        if ($this->input->post()) {
+            $data = [
+                'title' => $this->input->post('title'),
+                'description' => $this->input->post('description'),
+                'requirements' => $this->input->post('requirements'),
+                'email' => $this->input->post('email')
+            ];
+            $this->Career_model->insert($data);
+            redirect('career_admin');
+        }
+        $this->load->view('career_admin/create');
+    }
+
+    public function edit($id) {
+        $data['career'] = $this->Career_model->get_by_id($id);
+        if ($this->input->post()) {
+            $update = [
+                'title' => $this->input->post('title'),
+                'description' => $this->input->post('description'),
+                'requirements' => $this->input->post('requirements'),
+                'email' => $this->input->post('email')
+            ];
+            $this->Career_model->update($id, $update);
+            redirect('career_admin');
+        }
+        $this->load->view('career_admin/edit', $data);
+    }
+
+    public function delete($id) {
+        $this->Career_model->delete($id);
+        redirect('career_admin');
+    }
+}
+```
+
+---
+
+## 📌 View Admin
+
+### List (`application/views/career_admin/list.php`)
+```php
+<h2>Career List</h2>
+<a href="<?= site_url('career_admin/create') ?>" class="btn btn-success">Add New</a>
+<table class="table table-bordered mt-3">
+    <tr>
+        <th>ID</th><th>Title</th><th>Email</th><th>Action</th>
+    </tr>
+    <?php foreach($careers as $c): ?>
+    <tr>
+        <td><?= $c->id ?></td>
+        <td><?= $c->title ?></td>
+        <td><?= $c->email ?></td>
+        <td>
+            <a href="<?= site_url('career_admin/edit/'.$c->id) ?>" class="btn btn-primary btn-sm">Edit</a>
+            <a href="<?= site_url('career_admin/delete/'.$c->id) ?>" class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this job?')">Delete</a>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+```
+
+---
+
+### Create (`application/views/career_admin/create.php`)
+```php
+<h2>Add Career</h2>
+<form method="post">
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text" name="title" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Requirements</label>
+        <textarea name="requirements" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Email HR</label>
+        <input type="email" name="email" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+</form>
+```
+
+---
+
+### Edit (`application/views/career_admin/edit.php`)
+```php
+<h2>Edit Career</h2>
+<form method="post">
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text" name="title" value="<?= $career->title ?>" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control"><?= $career->description ?></textarea>
+    </div>
+    <div class="form-group">
+        <label>Requirements</label>
+        <textarea name="requirements" class="form-control"><?= $career->requirements ?></textarea>
+    </div>
+    <div class="form-group">
+        <label>Email HR</label>
+        <input type="email" name="email" value="<?= $career->email ?>" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+```
+
+---
+
+### ⚡ Alur CRUD
+1. HR buka `career_admin/index` → lihat daftar career.
+2. Klik **Add New** → isi form → data masuk DB.
+3. Klik **Edit** → update data.
+4. Klik **Delete** → hapus data.
+
+---
+
+👉 Mau saya bikinkan juga **integrasi WYSIWYG editor (misalnya CKEditor/TinyMCE)** biar HR bisa input job description & requirements dengan format bullet/heading langsung dari form?
