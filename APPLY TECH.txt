@@ -402,3 +402,51 @@ Bayangkan `$this->session` itu seperti **mesin tambahan di pabrik**. Kalau belum
 👉 Setelah kamu tambahkan `session` di autoload atau constructor, error di line 40 akan hilang dan flashdata bisa dipakai untuk notifikasi sukses.  
 
 Mau saya bikinkan juga contoh **flashdata sukses dengan SweetAlert** biar tampil pop-up elegan setelah submit?
+
+
+Mantap Billy 🎉, berarti alur **insert data text** sudah jalan mulus tanpa file. Itu artinya database dan model sudah berfungsi dengan baik. Jadi masalah sebelumnya memang ada di bagian **upload file** (folder, permission, atau validasi file).
+
+---
+
+## 🔎 Next Step: Aktifkan Upload Lagi
+Supaya upload CV bisa jalan, pastikan:
+
+1. **Folder Upload Ada & Writable**
+   - Buat folder `uploads/applications/` di root project (`CI3COMPRO/uploads/applications/`).
+   - Pastikan permissionnya bisa ditulis (di Windows/XAMPP biasanya cukup folder ada, di Linux/hosting perlu `chmod 755` atau `777`).
+
+2. **Config Upload**
+   - Pastikan di controller:
+   ```php
+   $config['upload_path']   = './uploads/applications/';
+   $config['allowed_types'] = 'pdf|doc|docx';
+   $config['max_size']      = 5120; // 5MB
+   $config['encrypt_name']  = TRUE;
+   ```
+
+3. **Error Handling**
+   - Kalau upload gagal, tampilkan error di view:
+   ```php
+   $this->session->set_flashdata('error', $this->upload->display_errors());
+   redirect('career/apply/'.$id);
+   ```
+
+4. **Database Kolom**
+   - Pastikan tabel `applications` sudah ada kolom `cv_file`:
+   ```sql
+   ALTER TABLE applications ADD cv_file VARCHAR(255);
+   ```
+
+---
+
+## 🎯 Strategi QC
+- **Step 1:** Jalankan versi tanpa file (sudah sukses ✅).
+- **Step 2:** Aktifkan upload lagi, coba submit file PDF kecil (misalnya 100KB).
+- **Step 3:** Kalau sukses, coba file besar (misalnya 6MB) → harus gagal dengan pesan error.
+- **Step 4:** Kalau gagal upload, cek log di `application/logs/` untuk detail.
+
+---
+
+👉 Jadi sekarang kamu bisa aktifkan kembali bagian upload. Kalau masih error, kita bisa tambahkan **debug log** untuk memastikan apakah masalahnya di folder, permission, atau validasi file.  
+
+Mau saya bikinkan snippet **flashdata alert elegan (SweetAlert)** biar pesan sukses/error tampil pop‑up premium, bukan plain text?
