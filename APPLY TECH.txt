@@ -1,0 +1,215 @@
+Oke Billy, supaya tombol **Apply Now** benar-benar bekerja di CodeIgniter 3, jangan langsung pakai `mailto:` (itu hanya buka email client). Sebaiknya kita bikin **controller method** untuk handle apply, lalu simpan data pelamar ke database. Berikut alurnya:
+
+---
+
+## 🛠️ Step 1: Tambah Tabel `applications`
+```sql
+CREATE TABLE applications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  career_id INT,
+  name VARCHAR(150),
+  email VARCHAR(150),
+  message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## 📌 Controller (`Career.php`)
+Tambahkan method `apply`:
+
+```php
+<?php
+class Career extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Career_model');
+        $this->load->model('Application_model');
+    }
+
+    public function apply($id) {
+        $career = $this->Career_model->get_by_id($id);
+
+        if ($this->input->post()) {
+            $data = [
+                'career_id' => $id,
+                'name'      => $this->input->post('name'),
+                'email'     => $this->input->post('email'),
+                'message'   => $this->input->post('message')
+            ];
+            $this->Application_model->insert($data);
+            $this->session->set_flashdata('success', 'Application submitted!');
+            redirect('career');
+        }
+
+        $data['career'] = $career;
+        $this->load->view('career_apply', $data);
+    }
+}
+```
+
+---
+
+## 📌 Model (`Application_model.php`)
+```php
+<?php
+class Application_model extends CI_Model {
+    public function insert($data) {
+        return $this->db->insert('applications', $data);
+    }
+}
+```
+
+---
+
+## 📌 View (`career_apply.php`)
+```html
+<h2>Apply for <?= $career->title ?></h2>
+<form method="post" class="career-form">
+    <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Message</label>
+        <textarea name="message" class="form-control long-text"></textarea>
+    </div>
+    <button type="submit" class="btn">Submit Application</button>
+</form>
+```
+
+---
+
+## 📌 Update Tombol Apply di Career List
+Ganti dari `mailto:` ke route CodeIgniter:
+
+```php
+<a href="<?= site_url('career/apply/'.$c->id) ?>" class="btn btn-primary mt-3">Apply Now</a>
+```
+
+---
+
+### ⚡ Alur Operasional
+1. User klik **Apply Now** → diarahkan ke form apply.
+2. Isi data (nama, email, pesan).
+3. Data tersimpan ke tabel `applications`.
+4. HR bisa lihat data pelamar di admin panel.
+
+👉 Mau saya bikinkan juga **Career Application List** di admin (tabel dengan nama, email, pesan, career_id) biar HR bisa review semua pelamar langsung di dashboard?
+
+
+Billy, supaya halaman **Apply Career** bisa upload file (misalnya CV atau resume) dengan batas maksimal 5MB di CodeIgniter 3, kita perlu menambahkan konfigurasi upload di controller dan form. Berikut alurnya:
+
+---
+
+## 📌 Form Apply (career_apply.php)
+Tambahkan input file:
+
+```html
+<h2>Apply for <?= $career->title ?></h2>
+<form method="post" enctype="multipart/form-data" class="career-form">
+    <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Message</label>
+        <textarea name="message" class="form-control long-text"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Upload CV (PDF/DOC, max 5MB)</label>
+        <input type="file" name="cv_file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn">Submit Application</button>
+</form>
+```
+
+---
+
+## 📌 Controller (`Career.php`)
+Tambahkan konfigurasi upload di method `apply`:
+
+```php
+public function apply($id) {
+    $career = $this->Career_model->get_by_id($id);
+
+    if ($this->input->post()) {
+        // Konfigurasi upload
+        $config['upload_path']   = './uploads/applications/';
+        $config['allowed_types'] = 'pdf|doc|docx';
+        $config['max_size']      = 5120; // 5MB (dalam KB)
+        $config['encrypt_name']  = TRUE;
+
+        $this->load->library('upload', $config);
+
+        $file_name = null;
+        if (!empty($_FILES['cv_file']['name'])) {
+            if ($this->upload->do_upload('cv_file')) {
+                $file_data = $this->upload->data();
+                $file_name = $file_data['file_name'];
+            } else {
+                $this->session->set_flashdata('error', $this->upload->display_errors());
+                redirect('career/apply/'.$id);
+            }
+        }
+
+        $data = [
+            'career_id' => $id,
+            'name'      => $this->input->post('name'),
+            'email'     => $this->input->post('email'),
+            'message'   => $this->input->post('message'),
+            'cv_file'   => $file_name
+        ];
+        $this->Application_model->insert($data);
+
+        $this->session->set_flashdata('success', 'Application submitted!');
+        redirect('career');
+    }
+
+    $data['career'] = $career;
+    $this->load->view('career_apply', $data);
+}
+```
+
+---
+
+## 📌 Model (`Application_model.php`)
+Tambahkan kolom `cv_file`:
+
+```php
+class Application_model extends CI_Model {
+    public function insert($data) {
+        return $this->db->insert('applications', $data);
+    }
+}
+```
+
+---
+
+## 📌 Database
+Tambahkan kolom `cv_file` di tabel `applications`:
+
+```sql
+ALTER TABLE applications ADD cv_file VARCHAR(255);
+```
+
+---
+
+### ⚡ Alur Operasional
+1. User klik **Apply Now** → diarahkan ke form apply.
+2. Isi data + upload file CV (PDF/DOC/DOCX).
+3. File disimpan di folder `uploads/applications/` dengan nama terenkripsi.
+4. Data pelamar + nama file tersimpan di tabel `applications`.
+5. HR bisa download file CV dari admin panel.
+
+👉 Mau saya bikinkan juga **Career Application List** di admin dengan tombol **Download CV** biar HR langsung bisa ambil file pelamar?
