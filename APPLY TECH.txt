@@ -213,3 +213,192 @@ ALTER TABLE applications ADD cv_file VARCHAR(255);
 5. HR bisa download file CV dari admin panel.
 
 👉 Mau saya bikinkan juga **Career Application List** di admin dengan tombol **Download CV** biar HR langsung bisa ambil file pelamar?
+
+
+Mantap Billy 👍, kita tambahkan fitur **upload file CV** dengan batas maksimal 5MB ke halaman Apply Career, lalu di admin HR bisa langsung **download CV** pelamar. Berikut implementasi lengkapnya:
+
+---
+
+## 📌 Form Apply (career_apply.php)
+```html
+<h2>Apply for <?= $career->title ?></h2>
+<form method="post" enctype="multipart/form-data" class="career-form">
+    <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label>Message</label>
+        <textarea name="message" class="form-control long-text"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Upload CV (PDF/DOC/DOCX, max 5MB)</label>
+        <input type="file" name="cv_file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn">Submit Application</button>
+</form>
+```
+
+---
+
+## 📌 Controller (`Career.php`)
+```php
+public function apply($id) {
+    $career = $this->Career_model->get_by_id($id);
+
+    if ($this->input->post()) {
+        // Konfigurasi upload
+        $config['upload_path']   = './uploads/applications/';
+        $config['allowed_types'] = 'pdf|doc|docx';
+        $config['max_size']      = 5120; // 5MB (KB)
+        $config['encrypt_name']  = TRUE;
+
+        $this->load->library('upload', $config);
+
+        $file_name = null;
+        if (!empty($_FILES['cv_file']['name'])) {
+            if ($this->upload->do_upload('cv_file')) {
+                $file_data = $this->upload->data();
+                $file_name = $file_data['file_name'];
+            } else {
+                $this->session->set_flashdata('error', $this->upload->display_errors());
+                redirect('career/apply/'.$id);
+            }
+        }
+
+        $data = [
+            'career_id' => $id,
+            'name'      => $this->input->post('name'),
+            'email'     => $this->input->post('email'),
+            'message'   => $this->input->post('message'),
+            'cv_file'   => $file_name
+        ];
+        $this->Application_model->insert($data);
+
+        $this->session->set_flashdata('success', 'Application submitted!');
+        redirect('career');
+    }
+
+    $data['career'] = $career;
+    $this->load->view('career_apply', $data);
+}
+```
+
+---
+
+## 📌 Database
+Tambahkan kolom `cv_file` di tabel `applications`:
+
+```sql
+ALTER TABLE applications ADD cv_file VARCHAR(255);
+```
+
+---
+
+## 📌 Admin HR – Application List (applications_list.php)
+```html
+<h2>Applications</h2>
+<table class="career-table mt-3">
+    <tr>
+        <th>ID</th><th>Career</th><th>Name</th><th>Email</th><th>Message</th><th>CV</th>
+    </tr>
+    <?php foreach($applications as $a): ?>
+    <tr>
+        <td><?= $a->id ?></td>
+        <td><?= $a->career_id ?></td>
+        <td><?= $a->name ?></td>
+        <td><?= $a->email ?></td>
+        <td><?= $a->message ?></td>
+        <td>
+            <?php if($a->cv_file): ?>
+                <a href="<?= base_url('uploads/applications/'.$a->cv_file) ?>" target="_blank" class="btn-action download">Download CV</a>
+            <?php else: ?>
+                No file
+            <?php endif; ?>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+```
+
+---
+
+### ⚡ Alur Operasional
+1. User isi form + upload CV (max 5MB).
+2. File tersimpan di `uploads/applications/` dengan nama terenkripsi.
+3. Data pelamar + file tersimpan di tabel `applications`.
+4. HR buka **Application List** → klik **Download CV** untuk ambil file.
+
+👉 Mau saya tambahkan juga validasi **ekstensi file** di sisi form (JavaScript) biar user tidak bisa upload selain PDF/DOC/DOCX sebelum submit?
+
+
+
+
+Billy, error itu muncul karena di dalam **controller Career.php** kamu memanggil `$this->session->set_flashdata(...)`, tapi library **session belum diload**. Akibatnya properti `$this->session` bernilai `null`, sehingga muncul notice *Undefined property* dan fatal error *Call to a member function set_flashdata() on null*.
+
+---
+
+## 🔎 Penyebab
+- CodeIgniter 3 tidak otomatis menyediakan `$this->session`.
+- Supaya bisa dipakai, kamu harus **autoload** atau **load manual** library session.
+
+---
+
+## ✅ Solusi
+
+### 1. Autoload Session (praktis untuk semua controller)
+Edit file `application/config/autoload.php`:
+```php
+$autoload['libraries'] = array('database', 'session');
+```
+Dengan ini, session akan selalu tersedia di semua controller.
+
+---
+
+### 2. Load Manual di Controller
+Tambahkan di constructor `Career.php`:
+
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Career extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->library('session'); // wajib supaya $this->session ada
+        $this->load->database();         // kalau pakai database
+        $this->load->model('Career_model');
+        $this->load->model('Application_model');
+    }
+
+    public function apply($id) {
+        $career = $this->Career_model->get_by_id($id);
+
+        if ($this->input->post()) {
+            // proses upload + simpan data
+            // ...
+            $this->session->set_flashdata('success', 'Application submitted!');
+            redirect('career');
+        }
+
+        $data['career'] = $career;
+        $this->load->view('career_apply', $data);
+    }
+}
+```
+
+---
+
+## 🎯 Analogi QC
+Bayangkan `$this->session` itu seperti **mesin tambahan di pabrik**. Kalau belum dipasang (autoload/load manual), operator tetap mencoba menyalakan mesin → sistem bilang “mesin tidak ada” (undefined property). Jadi solusinya: **pastikan session diload dulu**.
+
+---
+
+👉 Setelah kamu tambahkan `session` di autoload atau constructor, error di line 40 akan hilang dan flashdata bisa dipakai untuk notifikasi sukses.  
+
+Mau saya bikinkan juga contoh **flashdata sukses dengan SweetAlert** biar tampil pop-up elegan setelah submit?
