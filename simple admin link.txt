@@ -1,0 +1,218 @@
+
+
+
+
+http://localhost:89/CI3COMPRO/Message
+http://localhost:89/CI3COMPRO/Applications
+http://localhost:89/CI3COMPRO/Career_admin
+
+
+Baik Billy, mari kita buat struktur **MVC di CodeIgniter 3** untuk tiga link yang kamu sebutkan:  
+
+- `http://localhost:89/CI3COMPRO/Message`  
+- `http://localhost:89/CI3COMPRO/Applications`  
+- `http://localhost:89/CI3COMPRO/Career_admin`  
+
+### 📂 Struktur Folder MVC
+```
+application/
+ ├── controllers/
+ │    ├── Message.php
+ │    ├── Applications.php
+ │    └── Career_admin.php
+ ├── models/
+ │    ├── Message_model.php
+ │    ├── Applications_model.php
+ │    └── Career_admin_model.php
+ └── views/
+      ├── message/
+      │    └── index.php
+      ├── applications/
+      │    └── index.php
+      └── career_admin/
+           └── index.php
+```
+
+---
+
+### 1️⃣ Controller: Message.php
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Message extends CI_Controller {
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Message_model');
+    }
+
+    public function index() {
+        $data['messages'] = $this->Message_model->get_all();
+        $this->load->view('message/index', $data);
+    }
+}
+```
+
+---
+
+### 2️⃣ Controller: Applications.php
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Applications extends CI_Controller {
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Applications_model');
+    }
+
+    public function index() {
+        $data['applications'] = $this->Applications_model->get_all();
+        $this->load->view('applications/index', $data);
+    }
+}
+```
+
+---
+
+### 3️⃣ Controller: Career_admin.php
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Career_admin extends CI_Controller {
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('Career_admin_model');
+    }
+
+    public function index() {
+        $data['careers'] = $this->Career_admin_model->get_all();
+        $this->load->view('career_admin/index', $data);
+    }
+}
+```
+
+---
+
+### 📑 Model Contoh (Message_model.php)
+```php
+<?php
+class Message_model extends CI_Model {
+    public function get_all() {
+        return $this->db->get('messages')->result();
+    }
+}
+```
+
+Model lain (`Applications_model`, `Career_admin_model`) sama konsepnya, hanya ganti nama tabel sesuai kebutuhan (`applications`, `careers`).
+
+---
+
+### 🎨 View Contoh (message/index.php)
+```php
+<h2>Message List</h2>
+<ul>
+    <?php foreach($messages as $m): ?>
+        <li><?= $m->content ?></li>
+    <?php endforeach; ?>
+</ul>
+```
+
+View untuk `applications/index.php` dan `career_admin/index.php` bisa menampilkan data sesuai tabel masing-masing.
+
+---
+
+👉 Dengan struktur ini, setiap link akan otomatis memanggil controller sesuai nama file (`Message`, `Applications`, `Career_admin`) dan menampilkan data dari model ke view.  
+
+Mau saya buatkan juga **routing di `routes.php`** agar URL lebih rapi tanpa harus menuliskan `index.php` di tengah?
+
+Sip Billy 👍, biar URL‑nya lebih rapi tanpa `index.php`, kita atur di **`application/config/routes.php`**.  
+
+### 🔧 Routing di `routes.php`
+Tambahkan baris berikut:
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$route['default_controller'] = 'welcome';
+$route['404_override'] = '';
+$route['translate_uri_dashes'] = FALSE;
+
+// Custom routes
+$route['Message']       = 'Message/index';
+$route['Applications']  = 'Applications/index';
+$route['Career_admin']  = 'Career_admin/index';
+```
+
+---
+
+### 🚀 Cara Kerja
+- `http://localhost:89/CI3COMPRO/Message` → otomatis panggil `Message/index`  
+- `http://localhost:89/CI3COMPRO/Applications` → otomatis panggil `Applications/index`  
+- `http://localhost:89/CI3COMPRO/Career_admin` → otomatis panggil `Career_admin/index`  
+
+---
+
+### 🛠️ Tips Tambahan
+1. **Hilangkan `index.php` dari URL**  
+   - Edit `config/config.php`:  
+     ```php
+     $config['index_page'] = '';
+     ```
+   - Tambahkan `.htaccess` di root project:
+     ```apache
+     <IfModule mod_rewrite.c>
+         RewriteEngine On
+         RewriteBase /CI3COMPRO/
+         RewriteCond %{REQUEST_FILENAME} !-f
+         RewriteCond %{REQUEST_FILENAME} !-d
+         RewriteRule ^(.*)$ index.php/$1 [L]
+     </IfModule>
+     ```
+
+2. Pastikan Apache sudah aktifkan `mod_rewrite`.
+
+---
+
+Dengan setup ini, URL kamu jadi clean dan langsung mapping ke controller masing‑masing.  
+
+Mau saya bikinkan juga **contoh `.htaccess` versi full** yang siap pakai untuk CodeIgniter 3 di Windows (XAMPP/IIS)?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
