@@ -1,0 +1,183 @@
+Baik Billy, saya bikinkan contoh **halaman login dengan MVC CodeIgniter 3** yang akan mengarahkan user ke halaman menu admin setelah login berhasil. Struktur ini terdiri dari **Controller, Model, dan View**.
+
+---
+
+## 1. **Controller: Auth.php**
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Auth extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('User_model');
+        $this->load->library('session');
+    }
+
+    public function login() {
+        $this->load->view('login_form');
+    }
+
+    public function process_login() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+
+        $user = $this->User_model->check_login($username, $password);
+
+        if ($user) {
+            $this->session->set_userdata([
+                'user_id'   => $user->id,
+                'username'  => $user->username,
+                'logged_in' => TRUE
+            ]);
+            redirect('admin/menu'); // redirect ke halaman menu admin
+        } else {
+            $this->session->set_flashdata('error', 'Username atau password salah');
+            redirect('auth/login');
+        }
+    }
+
+    public function logout() {
+        $this->session->sess_destroy();
+        redirect('auth/login');
+    }
+}
+```
+
+---
+
+## 2. **Model: User_model.php**
+```php
+<?php
+class User_model extends CI_Model {
+
+    public function check_login($username, $password) {
+        $this->db->where('username', $username);
+        $query = $this->db->get('users');
+
+        if ($query->num_rows() > 0) {
+            $user = $query->row();
+            if (password_verify($password, $user->password)) {
+                return $user;
+            }
+        }
+        return false;
+    }
+}
+```
+
+> Tabel `users` minimal punya kolom: `id`, `username`, `password`. Password disimpan dengan `password_hash()`.
+
+---
+
+## 3. **View: login_form.php**
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fdfcfb, #e2d1c3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            width: 300px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #444;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #d4af37, #f5e79e);
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #f5e79e, #d4af37);
+            transform: translateY(-2px);
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>Login Admin</h2>
+        <?php if($this->session->flashdata('error')): ?>
+            <div class="error"><?php echo $this->session->flashdata('error'); ?></div>
+        <?php endif; ?>
+        <form method="post" action="<?php echo site_url('auth/process_login'); ?>">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+---
+
+## 4. **Controller untuk Menu Admin: Admin.php**
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Admin extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth/login');
+        }
+    }
+
+    public function menu() {
+        $this->load->view('admin_menu');
+    }
+}
+```
+
+---
+
+## 5. **View: admin_menu.php**
+Gunakan kode menu vertikal yang sudah kita buat sebelumnya (MENU : dengan link Message, Career, Applications).
+
+---
+
+👉 Alurnya:
+1. User buka `auth/login`.  
+2. Isi username & password.  
+3. Jika benar → redirect ke `admin/menu`.  
+4. Halaman `admin_menu` berisi link vertikal ke **Message, Career, Applications**.  
+5. Logout → kembali ke login.  
+
+Mau saya gabungkan langsung **admin_menu.php** dengan style premium vertikal yang kita buat sebelumnya biar langsung siap pakai setelah login?
