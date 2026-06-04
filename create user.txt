@@ -137,3 +137,77 @@ CREATE TABLE users (
 ---
 
 Billy, mau saya tambahkan juga **contoh session login** biar setelah berhasil login user langsung diarahkan ke menu admin?
+
+
+Betul Billy, tadi di contoh controller saya langsung ambil `$_POST` dan proses, jadi memang belum ada pemanggilan view. Supaya form input username & password bisa ditampilkan, kamu perlu **memanggil view** dari controller.  
+
+Contohnya begini:
+
+### 🔧 Controller `Auth.php`
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Auth extends CI_Controller {
+
+    // Tampilkan form register
+    public function register_form() {
+        $this->load->view('register'); // panggil view register.php
+    }
+
+    // Proses register
+    public function register() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+
+        $this->load->model('User_model');
+        if ($this->User_model->register($username, $password)) {
+            echo "Registrasi berhasil!";
+        } else {
+            echo "Registrasi gagal!";
+        }
+    }
+
+    // Tampilkan form login
+    public function login_form() {
+        $this->load->view('login'); // panggil view login.php
+    }
+
+    // Proses login
+    public function login() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+
+        $this->load->model('User_model');
+        $user = $this->User_model->check_login($username, $password);
+
+        if ($user) {
+            echo "Login sukses, selamat datang " . $user->username;
+        } else {
+            echo "Username atau password salah!";
+        }
+    }
+}
+```
+
+---
+
+### 📋 Routing di `application/config/routes.php`
+Tambahkan supaya gampang akses:
+```php
+$route['register'] = 'auth/register_form';
+$route['login']    = 'auth/login_form';
+```
+
+---
+
+### 🔄 Alur
+1. User buka `http://localhost/ci3/register` → controller `Auth/register_form` → load view `register.php`.  
+2. Isi form → submit ke `auth/register` → controller proses → model simpan hash ke DB.  
+3. User buka `http://localhost/ci3/login` → controller `Auth/login_form` → load view `login.php`.  
+4. Isi form → submit ke `auth/login` → controller proses → model cek dengan `password_verify`.  
+
+---
+
+📌 Jadi, **view dipanggil lewat controller** dengan `$this->load->view('nama_view')`.  
+Mau saya tambahkan juga contoh **redirect ke halaman dashboard** setelah login sukses biar lebih real-world?
