@@ -1,0 +1,139 @@
+Sip Billy, saya bikinkan contoh **MVC CodeIgniter 3** untuk pembuatan user dengan username dan password yang otomatis di-hash lalu disimpan ke tabel `users`.  
+
+---
+
+## 📝 Model (User_model.php)
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class User_model extends CI_Model {
+
+    // Simpan user baru dengan password hash
+    public function register($username, $password) {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        return $this->db->insert('users', [
+            'username' => $username,
+            'password' => $hashed
+        ]);
+    }
+
+    // Cek login
+    public function check_login($username, $password) {
+        $query = $this->db->get_where('users', ['username' => $username]);
+        $user = $query->row();
+
+        if ($user && password_verify($password, $user->password)) {
+            return $user;
+        }
+        return false;
+    }
+}
+```
+
+---
+
+## 🎮 Controller (Auth.php)
+```php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Auth extends CI_Controller {
+
+    public function register() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+
+        $this->load->model('User_model');
+        if ($this->User_model->register($username, $password)) {
+            echo "Registrasi berhasil!";
+        } else {
+            echo "Registrasi gagal!";
+        }
+    }
+
+    public function login() {
+        $username = $this->input->post('username');
+        $password = $this->input->post('password');
+
+        $this->load->model('User_model');
+        $user = $this->User_model->check_login($username, $password);
+
+        if ($user) {
+            echo "Login sukses, selamat datang " . $user->username;
+        } else {
+            echo "Username atau password salah!";
+        }
+    }
+}
+```
+
+---
+
+## 📄 View (register.php)
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register User</title>
+</head>
+<body>
+    <h2>Form Registrasi</h2>
+    <form method="post" action="<?php echo site_url('auth/register'); ?>">
+        <label>Username:</label>
+        <input type="text" name="username" required><br><br>
+        
+        <label>Password:</label>
+        <input type="password" name="password" required><br><br>
+        
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>
+```
+
+---
+
+## 📄 View (login.php)
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login User</title>
+</head>
+<body>
+    <h2>Form Login</h2>
+    <form method="post" action="<?php echo site_url('auth/login'); ?>">
+        <label>Username:</label>
+        <input type="text" name="username" required><br><br>
+        
+        <label>Password:</label>
+        <input type="password" name="password" required><br><br>
+        
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+```
+
+---
+
+## 📋 Struktur Tabel `users`
+```sql
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+```
+
+---
+
+### 🔧 Alur QC (Step-by-step)
+1. **Register** → input username & password → password di-hash → simpan ke DB.  
+2. **Login** → input username & password → ambil hash dari DB → `password_verify()` cocok → login sukses.  
+3. Kalau password salah → `password_verify()` gagal → login ditolak.  
+
+---
+
+Billy, mau saya tambahkan juga **contoh session login** biar setelah berhasil login user langsung diarahkan ke menu admin?
